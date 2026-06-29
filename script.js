@@ -161,6 +161,7 @@ const elements = {
   darkOverlay: document.getElementById("darkOverlay"),
   darkMessage: document.getElementById("darkMessage"),
   startButton: document.getElementById("startButton"),
+  startPanel: document.getElementById("startPanel"),
   versusModeButton: document.getElementById("versusModeButton"),
   comModeButton: document.getElementById("comModeButton"),
   nextButton: document.getElementById("nextButton"),
@@ -421,6 +422,10 @@ function setGameMode(mode) {
   elements.comModeButton.classList.toggle("active", gameMode === "com");
 }
 
+function updateStartPanel() {
+  elements.startPanel.classList.toggle("is-hidden", gameStarted);
+}
+
 function startGame() {
   players = createPlayers();
   phase = 1;
@@ -439,6 +444,7 @@ function startGame() {
   elements.nextButton.disabled = true;
   hidePotAction();
   resetPlate();
+  updateStartPanel();
   addLog("8つの食材が配られた");
   addLog("Phase 1開始");
   startPhaseChoices();
@@ -825,4 +831,5 @@ elements.nextButton.addEventListener("click", nextPhase);
 elements.potAction.addEventListener("click", pickIngredientFromPot);
 elements.eatButton.addEventListener("click", eatServedFood);
 
+updateStartPanel();
 render();

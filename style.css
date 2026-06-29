@@ -789,14 +789,14 @@ body.hit-impact .mahjong-table {
   }
 
   .table-grid {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto auto auto;
+    grid-template-columns: minmax(70px, 0.72fr) minmax(150px, 1.7fr) minmax(70px, 0.72fr);
+    grid-template-rows: auto minmax(310px, 1fr) auto;
     gap: 8px;
     min-height: 0;
   }
 
   .top {
-    grid-column: 1 / -1;
+    grid-column: 2;
     grid-row: 1;
   }
 
@@ -806,27 +806,27 @@ body.hit-impact .mahjong-table {
   }
 
   .right {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 2;
   }
 
   .table-center {
-    grid-column: 1 / -1;
-    grid-row: 3;
+    grid-column: 2;
+    grid-row: 2;
   }
 
   .bottom {
-    grid-column: 1 / -1;
-    grid-row: 4;
+    grid-column: 2;
+    grid-row: 3;
   }
 
   .mahjong-table {
-    min-height: 350px;
-    padding: 12px;
+    min-height: 310px;
+    padding: 10px;
   }
 
   .pot {
-    width: min(62vw, 230px);
+    width: min(42vw, 190px);
   }
 
   .pot-action {
@@ -889,23 +889,47 @@ body.hit-impact .mahjong-table {
 }
 
 @media (max-width: 420px) {
+  .table-grid {
+    grid-template-columns: minmax(58px, 0.66fr) minmax(136px, 1.8fr) minmax(58px, 0.66fr);
+    gap: 6px;
+  }
+
   .player-panel {
-    min-height: 104px;
-    padding: 9px;
+    min-height: 96px;
+    padding: 7px;
   }
 
   .player-name {
-    font-size: 0.96rem;
+    font-size: 0.86rem;
   }
 
   .player-stats {
     gap: 4px;
-    margin-top: 8px;
+    margin-top: 6px;
   }
 
   .stat-row,
   .status {
-    font-size: 0.82rem;
+    font-size: 0.74rem;
+  }
+
+  .status {
+    margin-top: 7px;
+    padding: 3px 6px;
+  }
+
+  .mahjong-table {
+    min-height: 286px;
+    padding: 8px;
+  }
+
+  .pot {
+    width: min(40vw, 160px);
+  }
+
+  .plate {
+    min-height: 118px;
+    padding: 14px;
   }
 
   .section-heading {

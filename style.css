@@ -1,0 +1,774 @@
+:root {
+  --bg: #171313;
+  --panel: #2a2523;
+  --panel-2: #39302b;
+  --table: #176750;
+  --table-edge: #55372d;
+  --accent: #ffcf5a;
+  --danger: #ff5d5d;
+  --text: #fff8ea;
+  --muted: #c9bca8;
+  --dead: #6d6964;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255, 207, 90, 0.16), transparent 28rem),
+    linear-gradient(135deg, #181111, #251b18 52%, #121010);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #26170c;
+  cursor: pointer;
+  font-weight: 800;
+  min-height: 42px;
+  padding: 0 14px;
+  box-shadow: 0 3px 0 #b77f21;
+}
+
+button:disabled {
+  background: #82786b;
+  box-shadow: none;
+  color: #2e2a27;
+  cursor: not-allowed;
+}
+
+.game-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.top-bar {
+  align-items: center;
+  background: rgba(31, 25, 23, 0.9);
+  border: 1px solid rgba(255, 248, 234, 0.12);
+  border-radius: 8px;
+  display: flex;
+  gap: 16px;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(1.35rem, 3vw, 2.1rem);
+}
+
+.top-bar p,
+.section-heading span,
+.log {
+  color: var(--muted);
+}
+
+.phase-display {
+  background: #111;
+  border: 1px solid rgba(255, 207, 90, 0.45);
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 1.1rem;
+  font-weight: 900;
+  padding: 10px 14px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.mode-select {
+  display: flex;
+  gap: 4px;
+}
+
+.mode-button {
+  background: #4e4239;
+  box-shadow: none;
+  color: #fff8ea;
+}
+
+.mode-button.active {
+  background: var(--accent);
+  box-shadow: 0 3px 0 #b77f21;
+  color: #26170c;
+}
+
+.board-wrap {
+  min-width: 0;
+}
+
+.table-grid {
+  display: grid;
+  grid-template-columns: minmax(118px, 1fr) minmax(250px, 2fr) minmax(118px, 1fr);
+  grid-template-rows: auto minmax(330px, 1fr) auto;
+  gap: 10px;
+  min-height: 620px;
+}
+
+.player-panel {
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 2px solid rgba(255, 248, 234, 0.12);
+  border-radius: 8px;
+  min-height: 118px;
+  padding: 12px;
+  position: relative;
+  transition: filter 180ms ease, transform 180ms ease, opacity 180ms ease;
+}
+
+.player-panel.eater {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255, 207, 90, 0.2), 0 0 22px rgba(255, 207, 90, 0.22);
+  transform: translateY(-2px);
+}
+
+.player-panel.damaged {
+  animation: damageFlash 0.55s ease-in-out 3;
+}
+
+.player-panel.dead {
+  background: #3f3f3f;
+  border-color: #595959;
+  color: #aaa;
+  filter: grayscale(1);
+  opacity: 0.68;
+}
+
+.player-name {
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.player-stats {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.stat-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.status {
+  border-radius: 999px;
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 900;
+  margin-top: 10px;
+  padding: 4px 8px;
+}
+
+.alive .status {
+  background: rgba(85, 206, 126, 0.18);
+  color: #8dffa7;
+}
+
+.dead .status {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ddd;
+}
+
+.top {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.left {
+  align-self: center;
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.right {
+  align-self: center;
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.bottom {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.table-center {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+}
+
+.mahjong-table {
+  align-items: center;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+    var(--table);
+  background-size: 32px 32px;
+  border: 14px solid var(--table-edge);
+  border-radius: 8px;
+  box-shadow: inset 0 0 32px rgba(0,0,0,0.48), 0 16px 38px rgba(0,0,0,0.28);
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 12px;
+  min-height: 100%;
+  padding: 18px;
+}
+
+.pot-zone {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.pot {
+  aspect-ratio: 1;
+  background: radial-gradient(circle at 50% 43%, #211d22 0 38%, #070606 39% 63%, #40322f 64% 100%);
+  border: 8px solid #111;
+  border-radius: 50%;
+  box-shadow: 0 16px 24px rgba(0,0,0,0.42), inset 0 -12px 20px rgba(255,255,255,0.08);
+  display: grid;
+  max-width: 280px;
+  place-items: center;
+  position: relative;
+  width: min(70vw, 280px);
+}
+
+.pot::before,
+.pot::after {
+  background: #15100f;
+  border: 3px solid #070606;
+  content: "";
+  height: 22px;
+  position: absolute;
+  top: 43%;
+  width: 48px;
+}
+
+.pot::before {
+  border-radius: 18px 4px 4px 18px;
+  left: -42px;
+}
+
+.pot::after {
+  border-radius: 4px 18px 18px 4px;
+  right: -42px;
+}
+
+.pot.mixing {
+  animation: potShake 0.2s ease-in-out infinite;
+}
+
+.pot-action {
+  background: #fff8ea;
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  box-shadow: 0 0 18px rgba(255, 207, 90, 0.38), 0 3px 0 #8b5a18;
+  color: #241510;
+  font-size: 1rem;
+  left: 50%;
+  min-height: 44px;
+  padding: 0 18px;
+  position: absolute;
+  top: 44%;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.pot-action:not([hidden]) {
+  animation: pickPulse 0.9s ease-in-out infinite alternate;
+}
+
+.pot-items {
+  bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  left: 14px;
+  position: absolute;
+  right: 14px;
+}
+
+.pot-chip {
+  background: rgba(255, 248, 234, 0.92);
+  border-radius: 999px;
+  color: #171313;
+  font-size: 0.8rem;
+  font-weight: 900;
+  padding: 3px 8px;
+}
+
+.plate {
+  align-items: center;
+  background: radial-gradient(circle, #fff9e8 0 55%, #ddccb1 56% 100%);
+  border: 4px solid #bba98d;
+  border-radius: 50%;
+  color: #231915;
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  justify-self: center;
+  min-height: 132px;
+  padding: 18px;
+  text-align: center;
+  width: min(100%, 260px);
+}
+
+.plate.reveal {
+  animation: platePop 0.6s ease;
+}
+
+.plate-label {
+  color: #725f4a;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+#plateFood {
+  font-size: 1.25rem;
+}
+
+#plateDamage {
+  color: #a61919;
+}
+
+.eat-button {
+  box-shadow: 0 3px 0 #8d231f;
+  background: #ff6b5f;
+  color: #fff8ea;
+  margin-top: 6px;
+  min-height: 36px;
+  padding: 0 18px;
+}
+
+.eat-button:disabled {
+  background: #9b9086;
+  color: #3a302b;
+}
+
+.hand-section {
+  background: rgba(31, 25, 23, 0.86);
+  border: 1px solid rgba(255, 248, 234, 0.12);
+  border-radius: 8px;
+  margin-top: 12px;
+  padding: 12px;
+}
+
+.section-heading {
+  align-items: baseline;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.section-heading h2,
+.log-panel h2 {
+  font-size: 1rem;
+}
+
+.hand {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(8, minmax(82px, 1fr));
+  margin-top: 10px;
+}
+
+.food-card {
+  background: linear-gradient(180deg, #fff3d0, #e9c77d);
+  border: 2px solid #7d4f22;
+  border-radius: 8px;
+  box-shadow: 0 4px 0 #7d4f22;
+  color: #231915;
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+  min-height: 88px;
+  padding: 8px;
+  place-items: center;
+  position: relative;
+  text-align: center;
+}
+
+.food-card:disabled {
+  cursor: not-allowed;
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+.food-icon {
+  font-size: 1.65rem;
+}
+
+.food-name {
+  font-weight: 900;
+}
+
+.food-role {
+  border-radius: 999px;
+  color: #fff8ea;
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1;
+  padding: 4px 7px;
+}
+
+.food-role.danger {
+  background: #a82929;
+}
+
+.food-role.stateChange {
+  background: #247d9b;
+}
+
+.food-role.normal {
+  background: #337744;
+}
+
+.food-role.medium {
+  background: #8a5a18;
+}
+
+.food-detail {
+  background: rgba(22, 16, 13, 0.96);
+  border: 1px solid rgba(255, 207, 90, 0.65);
+  border-radius: 8px;
+  bottom: calc(100% + 8px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.34);
+  color: #fff8ea;
+  display: grid;
+  font-size: 0.78rem;
+  gap: 5px;
+  left: 50%;
+  line-height: 1.35;
+  min-width: 190px;
+  opacity: 0;
+  padding: 9px;
+  pointer-events: none;
+  position: absolute;
+  transform: translate(-50%, 6px);
+  transition: opacity 160ms ease, transform 160ms ease;
+  visibility: hidden;
+  z-index: 10;
+}
+
+.food-detail strong,
+.food-detail em,
+.food-detail small {
+  font-style: normal;
+}
+
+.food-detail strong {
+  color: #ffdf6b;
+}
+
+.food-detail em {
+  color: #ffb0a8;
+  font-weight: 900;
+}
+
+.food-card:hover .food-detail,
+.food-card:focus-visible .food-detail {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  visibility: visible;
+}
+
+.log-panel {
+  background: rgba(16, 13, 12, 0.92);
+  border: 1px solid rgba(255, 248, 234, 0.12);
+  border-radius: 8px;
+  min-height: 0;
+  padding: 12px;
+}
+
+.log {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.92rem;
+  gap: 6px;
+  margin-top: 10px;
+  max-height: calc(100vh - 112px);
+  overflow: auto;
+}
+
+.log-entry {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 6px;
+}
+
+.dark-overlay,
+.result-modal {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  transition: opacity 220ms ease;
+  z-index: 20;
+}
+
+.dark-overlay.show,
+.result-modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dark-message {
+  animation: messagePulse 0.9s ease-in-out infinite alternate;
+  color: #f7f2e6;
+  font-size: clamp(1.2rem, 4vw, 2rem);
+  font-weight: 900;
+  padding: 24px;
+  text-align: center;
+}
+
+.result-card {
+  background: #fff8ea;
+  border: 4px solid var(--accent);
+  border-radius: 8px;
+  color: #201714;
+  max-width: 420px;
+  padding: 24px;
+  text-align: center;
+  width: calc(100vw - 32px);
+}
+
+.result-card span {
+  color: #8d231f;
+  font-weight: 900;
+}
+
+.result-card h2 {
+  font-size: 2rem;
+  margin: 8px 0;
+}
+
+.result-card button {
+  margin-top: 16px;
+}
+
+@keyframes damageFlash {
+  0%, 100% {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    transform: translateX(0);
+  }
+  20% {
+    background: #c82626;
+    transform: translateX(-5px);
+  }
+  45% {
+    background: #7e1616;
+    transform: translateX(5px);
+  }
+  70% {
+    background: #c82626;
+    transform: translateX(-3px);
+  }
+}
+
+.damage-pop {
+  animation: damagePop 0.9s ease forwards;
+  color: #ffdf6b;
+  font-size: 1.8rem;
+  font-weight: 1000;
+  pointer-events: none;
+  position: absolute;
+  right: 12px;
+  text-shadow: 0 2px 0 #7b1414, 0 0 12px rgba(255, 70, 70, 0.85);
+  top: 8px;
+  z-index: 3;
+}
+
+body.hit-impact .mahjong-table {
+  animation: tableImpact 0.28s ease;
+}
+
+@keyframes pickPulse {
+  from {
+    box-shadow: 0 0 10px rgba(255, 207, 90, 0.25), 0 3px 0 #8b5a18;
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+  to {
+    box-shadow: 0 0 28px rgba(255, 207, 90, 0.62), 0 3px 0 #8b5a18;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+}
+
+@keyframes damagePop {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.8);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.16);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-34px) scale(0.94);
+  }
+}
+
+@keyframes tableImpact {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+}
+
+@keyframes potShake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(-2px, 2px) rotate(-1deg); }
+  75% { transform: translate(2px, -1px) rotate(1deg); }
+}
+
+@keyframes platePop {
+  0% { transform: scale(0.82); }
+  70% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes messagePulse {
+  from { opacity: 0.65; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1.02); }
+}
+
+@media (max-width: 960px) {
+  .game-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .log-panel {
+    min-height: 240px;
+  }
+
+  .log {
+    max-height: 260px;
+  }
+}
+
+@media (max-width: 720px) {
+  .game-shell {
+    padding: 10px;
+  }
+
+  .top-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .phase-display {
+    width: 100%;
+  }
+
+  .controls {
+    justify-content: stretch;
+  }
+
+  .controls button {
+    flex: 1;
+  }
+
+  .table-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto auto;
+    min-height: 0;
+  }
+
+  .top {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .left {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .right {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .table-center {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .bottom {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  .mahjong-table {
+    min-height: 390px;
+    padding: 14px;
+  }
+
+  .pot {
+    width: min(68vw, 240px);
+  }
+
+  .hand {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .food-card {
+    min-height: 126px;
+  }
+
+  .food-detail {
+    background: rgba(35, 25, 21, 0.12);
+    border: 0;
+    box-shadow: none;
+    color: #3a2418;
+    font-size: 0.7rem;
+    left: auto;
+    min-width: 0;
+    opacity: 1;
+    padding: 2px 0 0;
+    position: static;
+    transform: none;
+    visibility: visible;
+  }
+
+  .food-detail strong {
+    color: #6d3a00;
+  }
+
+  .food-detail em {
+    color: #8d231f;
+  }
+
+  .food-detail small {
+    display: none;
+  }
+}

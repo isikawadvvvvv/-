@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>闇鍋ロワイヤル：冷え鍋テスト</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-shell">
+    <header class="top-bar">
+      <div>
+        <h1>闇鍋ロワイヤル</h1>
+        <p>冷え鍋テスト</p>
+      </div>
+      <div class="phase-display" id="phaseDisplay">Phase 1 / 8</div>
+      <div class="controls">
+        <div class="mode-select" aria-label="ゲームモード">
+          <button class="mode-button active" id="versusModeButton" type="button">対戦</button>
+          <button class="mode-button" id="comModeButton" type="button">COM戦</button>
+        </div>
+        <button id="startButton">ゲーム開始</button>
+        <button id="nextButton" disabled>次のフェーズへ</button>
+        <button id="restartButton">リスタート</button>
+      </div>
+    </header>
+
+    <main class="board-wrap">
+      <section class="table-grid" aria-label="闇鍋卓">
+        <div class="player-panel seat top" id="player-2"></div>
+        <div class="player-panel seat left" id="player-1"></div>
+
+        <div class="table-center">
+          <div class="mahjong-table">
+            <div class="pot-zone">
+              <div class="pot" id="pot">
+                <div class="pot-rim"></div>
+                <button class="pot-action" id="potAction" type="button" hidden>具材を拾う</button>
+                <div class="pot-items" id="potItems"></div>
+              </div>
+            </div>
+            <div class="plate" id="plate">
+              <span class="plate-label">皿</span>
+              <strong id="plateFood">まだ何も出ていない</strong>
+              <span id="plateState">食材を選んでください</span>
+              <b id="plateDamage">Damage -</b>
+              <button class="eat-button" id="eatButton" type="button" disabled>食べる</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="player-panel seat right" id="player-3"></div>
+        <div class="player-panel seat bottom" id="player-0"></div>
+      </section>
+
+      <section class="hand-section">
+        <div class="section-heading">
+          <h2 id="handTitle">手札</h2>
+          <span id="handHint">ゲーム開始を押してください</span>
+        </div>
+        <div class="hand" id="hand"></div>
+      </section>
+    </main>
+
+    <aside class="log-panel">
+      <h2>ログ</h2>
+      <div class="log" id="log"></div>
+    </aside>
+  </div>
+
+  <div class="dark-overlay" id="darkOverlay" aria-hidden="true">
+    <div class="dark-message" id="darkMessage">部屋が真っ暗になった……</div>
+  </div>
+
+  <div class="result-modal" id="resultModal" aria-hidden="true">
+    <div class="result-card">
+      <span>結果</span>
+      <h2 id="resultTitle">勝者</h2>
+      <p id="resultText"></p>
+      <button id="modalRestartButton">もう一度遊ぶ</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

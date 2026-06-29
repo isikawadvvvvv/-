@@ -112,12 +112,19 @@ h1 {
   gap: 16px;
   grid-column: 1 / -1;
   justify-items: center;
-  min-height: 220px;
+  min-height: clamp(300px, 56vh, 560px);
   padding: 24px;
   text-align: center;
 }
 
 .start-panel.is-hidden {
+  display: none;
+}
+
+body.is-pregame .board-wrap,
+body.is-pregame .log-panel,
+body.is-pregame #nextButton,
+body.is-pregame #restartButton {
   display: none;
 }
 
@@ -139,10 +146,10 @@ h1 {
 
 .start-button {
   box-shadow: 0 6px 0 #b77f21, 0 0 28px rgba(255, 207, 90, 0.3);
-  font-size: clamp(1.25rem, 4vw, 1.8rem);
-  min-height: 74px;
-  padding: 0 42px;
-  width: min(100%, 360px);
+  font-size: clamp(1.45rem, 5vw, 2.1rem);
+  min-height: 88px;
+  padding: 0 44px;
+  width: min(100%, 420px);
 }
 
 .mode-select {
@@ -770,13 +777,15 @@ body.hit-impact .mahjong-table {
   }
 
   .start-panel {
-    min-height: min(42svh, 300px);
-    padding: 22px 14px;
+    min-height: calc(100svh - 158px);
+    padding: 28px 14px;
   }
 
   .start-button {
-    min-height: 76px;
-    width: min(100%, 320px);
+    border-radius: 10px;
+    font-size: 1.65rem;
+    min-height: 92px;
+    width: min(100%, 340px);
   }
 
   .table-grid {

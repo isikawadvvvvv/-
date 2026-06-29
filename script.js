@@ -424,6 +424,7 @@ function setGameMode(mode) {
 
 function updateStartPanel() {
   elements.startPanel.classList.toggle("is-hidden", gameStarted);
+  document.body.classList.toggle("is-pregame", !gameStarted);
 }
 
 function startGame() {

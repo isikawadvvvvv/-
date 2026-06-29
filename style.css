@@ -175,6 +175,10 @@ body.is-pregame #restartButton {
 
 .table-grid {
   display: grid;
+  grid-template-areas:
+    ". top ."
+    "left table right"
+    ". bottom .";
   grid-template-columns: minmax(118px, 1fr) minmax(250px, 2fr) minmax(118px, 1fr);
   grid-template-rows: auto minmax(330px, 1fr) auto;
   gap: 10px;
@@ -246,30 +250,25 @@ body.is-pregame #restartButton {
 }
 
 .top {
-  grid-column: 2;
-  grid-row: 1;
+  grid-area: top;
 }
 
 .left {
   align-self: center;
-  grid-column: 1;
-  grid-row: 2;
+  grid-area: left;
 }
 
 .right {
   align-self: center;
-  grid-column: 3;
-  grid-row: 2;
+  grid-area: right;
 }
 
 .bottom {
-  grid-column: 2;
-  grid-row: 3;
+  grid-area: bottom;
 }
 
 .table-center {
-  grid-column: 2;
-  grid-row: 2;
+  grid-area: table;
   min-width: 0;
 }
 
@@ -789,35 +788,14 @@ body.hit-impact .mahjong-table {
   }
 
   .table-grid {
+    grid-template-areas:
+      ". top ."
+      "left table right"
+      ". bottom .";
     grid-template-columns: minmax(70px, 0.72fr) minmax(150px, 1.7fr) minmax(70px, 0.72fr);
     grid-template-rows: auto minmax(310px, 1fr) auto;
     gap: 8px;
     min-height: 0;
-  }
-
-  .top {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .left {
-    grid-column: 1;
-    grid-row: 2;
-  }
-
-  .right {
-    grid-column: 3;
-    grid-row: 2;
-  }
-
-  .table-center {
-    grid-column: 2;
-    grid-row: 2;
-  }
-
-  .bottom {
-    grid-column: 2;
-    grid-row: 3;
   }
 
   .mahjong-table {

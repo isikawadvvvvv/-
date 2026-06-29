@@ -142,7 +142,7 @@ let pendingServing = null;
 let servingQueue = [];
 let currentChooserIndex = null;
 let choiceQueue = [];
-let gameMode = "versus";
+let gameMode = "com";
 
 const elements = {
   phaseDisplay: document.getElementById("phaseDisplay"),

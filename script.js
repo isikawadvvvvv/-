@@ -225,9 +225,12 @@ let nightVisionChoosing = false;
 let nightVisionQueue = [];
 let currentNightVisionUserIndex = null;
 let reservedFoodsByPlayer = new Map();
+let activeHandTab = "food";
 
 const elements = {
   phaseDisplay: document.getElementById("phaseDisplay"),
+  foodTabButton: document.getElementById("foodTabButton"),
+  itemTabButton: document.getElementById("itemTabButton"),
   handTitle: document.getElementById("handTitle"),
   hand: document.getElementById("hand"),
   handHint: document.getElementById("handHint"),
@@ -397,6 +400,20 @@ function render() {
   renderPlayers();
   renderHand();
   renderPotItems();
+  renderHandTabs();
+}
+
+function renderHandTabs() {
+  elements.foodTabButton.classList.toggle("active", activeHandTab === "food");
+  elements.itemTabButton.classList.toggle("active", activeHandTab === "item");
+  elements.foodTabButton.setAttribute("aria-selected", activeHandTab === "food" ? "true" : "false");
+  elements.itemTabButton.setAttribute("aria-selected", activeHandTab === "item" ? "true" : "false");
+  document.body.classList.toggle("show-items-tab", activeHandTab === "item");
+}
+
+function setActiveHandTab(tabName) {
+  activeHandTab = tabName;
+  renderHandTabs();
 }
 
 function getStageLabel() {
@@ -446,6 +463,7 @@ function renderHand() {
   elements.itemHint.textContent = gameStarted ? "使用できるタイミングで選択できます" : "ゲーム開始を押してください";
 
   if (nightVisionChoosing && currentNightVisionUserIndex !== null) {
+    activeHandTab = "food";
     renderNightVisionChoices();
     return;
   }
@@ -681,6 +699,7 @@ function startGame() {
   nightVisionQueue = [];
   currentNightVisionUserIndex = null;
   reservedFoodsByPlayer = new Map();
+  activeHandTab = "food";
   elements.log.innerHTML = "";
   elements.resultModal.classList.remove("show");
   elements.resultModal.setAttribute("aria-hidden", "true");
@@ -1363,6 +1382,8 @@ elements.restartButton.addEventListener("click", startGame);
 elements.modalRestartButton.addEventListener("click", startGame);
 elements.versusModeButton.addEventListener("click", () => setGameMode("versus"));
 elements.comModeButton.addEventListener("click", () => setGameMode("com"));
+elements.foodTabButton.addEventListener("click", () => setActiveHandTab("food"));
+elements.itemTabButton.addEventListener("click", () => setActiveHandTab("item"));
 elements.nextButton.addEventListener("click", nextPhase);
 elements.potAction.addEventListener("click", pickIngredientFromPot);
 elements.eatButton.addEventListener("click", eatServedFood);

@@ -464,6 +464,22 @@ body.is-pregame #restartButton {
   padding: 12px;
 }
 
+.hand-tabs {
+  display: none;
+}
+
+.hand-tab {
+  background: #4e4239;
+  box-shadow: none;
+  color: #fff8ea;
+}
+
+.hand-tab.active {
+  background: var(--accent);
+  box-shadow: 0 3px 0 #b77f21;
+  color: #26170c;
+}
+
 .section-heading {
   align-items: baseline;
   display: flex;
@@ -903,12 +919,41 @@ body.hit-impact .mahjong-table {
     padding: 0 20px;
   }
 
+  .hand-tabs {
+    display: grid;
+    gap: 6px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 10px;
+  }
+
+  .hand-tab {
+    min-height: 44px;
+  }
+
+  body:not(.show-items-tab) .item-area {
+    display: none;
+  }
+
+  body.show-items-tab .hand {
+    display: none;
+  }
+
+  body.show-items-tab .hand-section > .section-heading {
+    display: none;
+  }
+
+  body.show-items-tab .item-area {
+    border-top: 0;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
   .hand {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .items {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .food-card {

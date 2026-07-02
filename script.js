@@ -222,6 +222,9 @@ let gameStage = GAME_STAGES.PREGAME;
 let currentPotState = POT_STATES.NORMAL;
 let pendingStringUserIndex = null;
 let nightVisionChoosing = false;
+let nightVisionQueue = [];
+let currentNightVisionUserIndex = null;
+let reservedFoodsByPlayer = new Map();
 
 const elements = {
   phaseDisplay: document.getElementById("phaseDisplay"),
@@ -442,12 +445,12 @@ function renderHand() {
   elements.itemTitle.textContent = "アイテム";
   elements.itemHint.textContent = gameStarted ? "使用できるタイミングで選択できます" : "ゲーム開始を押してください";
 
-  if (nightVisionChoosing && pendingServing) {
+  if (nightVisionChoosing && currentNightVisionUserIndex !== null) {
     renderNightVisionChoices();
     return;
   }
 
-  const playerIndex = currentChooserIndex ?? pendingServing?.eaterIndex ?? null;
+  const playerIndex = currentChooserIndex ?? currentNightVisionUserIndex ?? pendingServing?.eaterIndex ?? null;
   const player = playerIndex === null ? null : players[playerIndex];
   if (!player) {
     elements.handTitle.textContent = "手札";
@@ -508,7 +511,9 @@ function renderUsableItems(player) {
   if (!player.isHuman || gameOver) return;
 
   elements.itemTitle.textContent = `${player.name} アイテム`;
-  elements.itemHint.textContent = "食材とは別枠です";
+  elements.itemHint.textContent = currentNightVisionUserIndex === players.indexOf(player)
+    ? "暗視ゴーグルを使うか選んでください"
+    : "食材とは別枠です";
   player.items.forEach((item) => {
     const card = document.createElement("button");
     card.className = `food-card item-card ${item.id}`;
@@ -527,6 +532,23 @@ function renderUsableItems(player) {
     card.addEventListener("click", () => handleUseItem(player, item.id));
     elements.items.appendChild(card);
   });
+
+  if (currentNightVisionUserIndex === players.indexOf(player) && !nightVisionChoosing) {
+    const skipButton = document.createElement("button");
+    skipButton.className = "food-card item-card skip";
+    skipButton.type = "button";
+    skipButton.innerHTML = `
+      <span class="food-icon">↷</span>
+      <span class="food-name">使わない</span>
+      <span class="food-role item">②スキップ</span>
+      <span class="food-detail">
+        <strong>暗視ゴーグルを使わずに進める</strong>
+        <em>鍋状態判定へ進行</em>
+      </span>
+    `;
+    skipButton.addEventListener("click", skipNightVisionUse);
+    elements.items.appendChild(skipButton);
+  }
 }
 
 function getItemUseText(itemId) {
@@ -546,10 +568,9 @@ function canUseItem(player, itemId) {
       && pendingStringUserIndex === null;
   }
   if (itemId === "nightVision") {
-    return gameStage === GAME_STAGES.SERVING
-      && pendingServing
-      && players[pendingServing.eaterIndex] === player
-      && !pendingServing.revealed
+    return gameStage === GAME_STAGES.MIXING
+      && currentNightVisionUserIndex !== null
+      && players[currentNightVisionUserIndex] === player
       && potItems.length > 0;
   }
   if (itemId === "antidote") {
@@ -559,7 +580,7 @@ function canUseItem(player, itemId) {
 }
 
 function renderNightVisionChoices() {
-  const eater = players[pendingServing.eaterIndex];
+  const eater = players[currentNightVisionUserIndex];
   elements.handTitle.textContent = `${eater.name} 暗視ゴーグル`;
   elements.handHint.textContent = "鍋の中身を確認し、食べる食材を選んでください";
   potItems.forEach((entry, index) => {
@@ -573,7 +594,7 @@ function renderNightVisionChoices() {
       <span class="food-name">${food.name}</span>
       <span class="food-role ${food.category}">${FOOD_CATEGORY_LABELS[food.category]}</span>
       <span class="food-detail">
-        <strong>持ち主: ${players[entry.ownerIndex].name}</strong>
+        <strong>持ち主: ${players[entry.ownerIndex].name}${entry.stringOwnerIndex !== null ? ` / 紐: ${players[entry.stringOwnerIndex].name}` : ""}</strong>
         <em>${food.riskText}</em>
       </span>
     `;
@@ -585,6 +606,7 @@ function renderNightVisionChoices() {
 function getHandHint(canChoose) {
   if (!gameStarted) return "ゲーム開始を押してください";
   if (gameOver) return "ゲーム終了";
+  if (currentNightVisionUserIndex !== null) return `${players[currentNightVisionUserIndex].name}は暗視ゴーグルを使うか選んでください`;
   if (pendingServing && !pendingServing.revealed) return `${players[pendingServing.eaterIndex].name}は鍋から具材を拾ってください`;
   if (pendingServing && pendingServing.revealed) return `${players[pendingServing.eaterIndex].name}は皿の食材を食べてください`;
   if (awaitingNext) return "次フェーズへ移行中です";
@@ -656,6 +678,9 @@ function startGame() {
   currentPotState = POT_STATES.NORMAL;
   pendingStringUserIndex = null;
   nightVisionChoosing = false;
+  nightVisionQueue = [];
+  currentNightVisionUserIndex = null;
+  reservedFoodsByPlayer = new Map();
   elements.log.innerHTML = "";
   elements.resultModal.classList.remove("show");
   elements.resultModal.setAttribute("aria-hidden", "true");
@@ -676,8 +701,14 @@ function startPhaseChoices() {
   servingQueue = [];
   pendingStringUserIndex = null;
   nightVisionChoosing = false;
+  nightVisionQueue = [];
+  currentNightVisionUserIndex = null;
+  reservedFoodsByPlayer = new Map();
   currentPotState = POT_STATES.NORMAL;
   gameStage = GAME_STAGES.CHOOSING;
+  addLog("毒ダメージ処理");
+  applyPoisonAtPhaseStart();
+  if (gameOver) return;
   choiceQueue = players
     .map((player, index) => ({ player, index }))
     .filter((entry) => entry.player.alive && entry.player.inventory.length > 0)
@@ -696,13 +727,6 @@ function startNextChoiceTurn() {
   }
 
   addLog(`${player.name}の投入番`);
-  applyPoisonAtTurnStart(currentChooserIndex);
-  if (gameOver) return;
-  if (!player.alive) {
-    startNextChoiceTurn();
-    return;
-  }
-
   if (player.statuses.confusion) {
     addLog(`${player.name}は混乱してランダムに動く`);
     render();
@@ -712,20 +736,22 @@ function startNextChoiceTurn() {
   if (!player.isHuman) {
     render();
     setTimeout(autoChooseCurrentPlayerFood, TIMING.cpuBeforePick);
+    return;
   }
+  render();
 }
 
-function applyPoisonAtTurnStart(playerIndex) {
-  const player = players[playerIndex];
-  if (!player || !player.alive || !player.statuses.poison) return;
-
-  player.hp -= 1;
-  addLog(`${player.name}はターン開始時に毒で1ダメージ`);
-  flashDamage(playerIndex, 1);
-  if (player.hp <= 0) {
-    player.alive = false;
-    addLog(`${player.name}は毒で脱落した`);
-  }
+function applyPoisonAtPhaseStart() {
+  players.forEach((player, index) => {
+    if (!player.alive || !player.statuses.poison) return;
+    player.hp -= 1;
+    addLog(`${player.name}は毒で1ダメージ`);
+    flashDamage(index, 1);
+    if (player.hp <= 0) {
+      player.alive = false;
+      addLog(`${player.name}は毒で脱落した`);
+    }
+  });
 
   const winner = checkWinner();
   if (winner) {
@@ -754,6 +780,13 @@ function handleUseItem(player, itemId) {
     useAntidote(player);
     render();
   }
+}
+
+function skipNightVisionUse() {
+  if (currentNightVisionUserIndex === null || nightVisionChoosing || gameOver) return;
+  addLog(`${players[currentNightVisionUserIndex].name}は暗視ゴーグルを使わなかった`);
+  currentNightVisionUserIndex = null;
+  processNextNightVisionUser();
 }
 
 function hasItem(player, itemId) {
@@ -785,9 +818,15 @@ function autoChooseCurrentPlayerFood() {
   if (!player || !player.alive || player.inventory.length === 0) return;
   if (player.isHuman && !player.statuses.confusion) return;
 
+  const wasConfused = player.statuses.confusion;
   maybeUseCpuItemBeforeChoice(player);
   const foodIndex = Math.floor(Math.random() * player.inventory.length);
   handlePlayerChoice(foodIndex);
+  if (wasConfused) {
+    player.statuses.confusion = false;
+    addLog(`${player.name}の混乱は治った`);
+    render();
+  }
 }
 
 function maybeUseCpuItemBeforeChoice(player) {
@@ -830,17 +869,65 @@ async function runPhaseResolution() {
   currentChooserIndex = null;
   pendingServing = null;
   servingQueue = [];
+  reservedFoodsByPlayer = new Map();
   hidePotAction();
   render();
 
-  const potState = judgePotState(potItems);
-  currentPotState = potState;
-  await darkenRoom(potState);
+  await darkenRoom();
 
   elements.pot.classList.add("mixing");
   addLog("鍋の中で食材が混ざっている");
   await sleep(TIMING.mixing);
   elements.pot.classList.remove("mixing");
+
+  startNightVisionPhase();
+}
+
+function startNightVisionPhase() {
+  nightVisionQueue = players
+    .map((player, index) => ({ player, index }))
+    .filter((entry) => entry.player.alive && hasItem(entry.player, "nightVision"))
+    .map((entry) => entry.index);
+  processNextNightVisionUser();
+}
+
+function processNextNightVisionUser() {
+  nightVisionChoosing = false;
+  currentNightVisionUserIndex = null;
+
+  if (gameOver) return;
+  if (potItems.length === 0 || nightVisionQueue.length === 0) {
+    completeMixingAfterNightVision();
+    return;
+  }
+
+  const playerIndex = nightVisionQueue.shift();
+  const player = players[playerIndex];
+  if (!player || !player.alive || !hasItem(player, "nightVision")) {
+    processNextNightVisionUser();
+    return;
+  }
+
+  currentNightVisionUserIndex = playerIndex;
+  addLog(`${player.name}は暗視ゴーグルを使うか選べる`);
+  render();
+
+  if (!player.isHuman) {
+    setTimeout(() => {
+      if (shouldCpuUseNightVision(player)) {
+        useCpuNightVision(player);
+      } else {
+        skipNightVisionUse();
+      }
+    }, TIMING.cpuBeforePick);
+  }
+}
+
+function completeMixingAfterNightVision() {
+  currentNightVisionUserIndex = null;
+  nightVisionChoosing = false;
+  currentPotState = judgePotState(getAllPhasePotEntries());
+  addLog("鍋状態を判定した");
 
   servingQueue = shuffleArray(
     players
@@ -850,8 +937,12 @@ async function runPhaseResolution() {
   );
   gameStage = GAME_STAGES.SERVING;
   addLog("生存者が順番に鍋から具材を拾う");
-  await sleep(TIMING.beforeFirstServing);
-  startNextServing(potState);
+  render();
+  setTimeout(() => startNextServing(currentPotState), TIMING.beforeFirstServing);
+}
+
+function getAllPhasePotEntries() {
+  return [...potItems, ...reservedFoodsByPlayer.values()];
 }
 
 function startNextServing(potState) {
@@ -861,7 +952,7 @@ function startNextServing(potState) {
 
   if (gameOver) return;
 
-  if (servingQueue.length === 0 || potItems.length === 0) {
+  if (servingQueue.length === 0) {
     completePhaseAfterServings();
     return;
   }
@@ -877,6 +968,7 @@ function startNextServing(potState) {
     potState,
     eaterIndex,
     food: null,
+    reservedFood: null,
     damage: 0,
     revealed: false
   };
@@ -890,17 +982,32 @@ function startNextServing(potState) {
   addLog(`${eater.name}は鍋から具材を拾う`);
   render();
 
+  if (reservedFoodsByPlayer.has(eaterIndex)) {
+    const entry = reservedFoodsByPlayer.get(eaterIndex);
+    reservedFoodsByPlayer.delete(eaterIndex);
+    pendingServing.reservedFood = entry.food;
+    addLog(`${eater.name}は暗視ゴーグルで選んだ食材を食べる`);
+    if (eater.isHuman) {
+      showPotAction();
+    } else {
+      revealPendingFood(entry.food);
+      setTimeout(eatServedFood, TIMING.cpuBeforeEat);
+    }
+    return;
+  }
+
+  if (potItems.length === 0) {
+    startNextServing(potState);
+    return;
+  }
+
   if (eater.isHuman) {
     showPotAction();
     return;
   }
 
   setTimeout(() => {
-    if (shouldCpuUseNightVision(eater)) {
-      useCpuNightVision(eater);
-    } else {
-      pickIngredientFromPot();
-    }
+    pickIngredientFromPot();
     setTimeout(eatServedFood, TIMING.cpuBeforeEat);
   }, TIMING.cpuBeforePick);
 }
@@ -911,6 +1018,9 @@ function completePhaseAfterServings() {
   pendingServing = null;
   servingQueue = [];
   nightVisionChoosing = false;
+  nightVisionQueue = [];
+  currentNightVisionUserIndex = null;
+  reservedFoodsByPlayer = new Map();
   hidePotAction();
   elements.eatButton.disabled = true;
   elements.eatButton.hidden = true;
@@ -928,7 +1038,7 @@ function completePhaseAfterServings() {
 function pickIngredientFromPot() {
   if (!pendingServing || pendingServing.revealed || gameOver) return;
 
-  const food = selectFoodForEater(pendingServing.eaterIndex);
+  const food = pendingServing.reservedFood ?? selectFoodForEater(pendingServing.eaterIndex);
   revealPendingFood(food);
 }
 
@@ -957,10 +1067,13 @@ function revealPendingFood(food) {
 }
 
 function chooseVisiblePotFood(index) {
-  if (!nightVisionChoosing || !pendingServing || pendingServing.revealed || gameOver) return;
+  if (!nightVisionChoosing || currentNightVisionUserIndex === null || gameOver) return;
   const [entry] = potItems.splice(index, 1);
+  reservedFoodsByPlayer.set(currentNightVisionUserIndex, entry);
+  addLog(`${players[currentNightVisionUserIndex].name}は${entry.food.name}を選んだ`);
   nightVisionChoosing = false;
-  revealPendingFood(entry.food);
+  currentNightVisionUserIndex = null;
+  processNextNightVisionUser();
 }
 
 function eatServedFood() {
@@ -1019,12 +1132,16 @@ async function darkenRoom(potState) {
 }
 
 function judgePotState(items) {
-  return items.reduce((state, entry) => {
-    if (entry.food.id === "clearBroth") return POT_STATES.NORMAL;
-    if (entry.food.id === "chiliOil") return POT_STATES.SPICY;
-    if (entry.food.id === "ice" || entry.food.id === "water") return POT_STATES.COLD;
-    return state;
-  }, POT_STATES.NORMAL);
+  if (items.some((entry) => entry.food.id === "clearBroth")) {
+    return POT_STATES.NORMAL;
+  }
+  if (items.some((entry) => entry.food.id === "chiliOil")) {
+    return POT_STATES.SPICY;
+  }
+  if (items.some((entry) => entry.food.id === "ice" || entry.food.id === "water")) {
+    return POT_STATES.COLD;
+  }
+  return POT_STATES.NORMAL;
 }
 
 function selectRandomFoodFromPot() {
@@ -1048,15 +1165,19 @@ function shouldCpuUseNightVision(player) {
 }
 
 function useCpuNightVision(player) {
+  const playerIndex = players.indexOf(player);
   consumeItem(player, "nightVision");
+  const estimatedPotState = judgePotState(getAllPhasePotEntries());
   const bestIndex = potItems.reduce((best, entry, index) => {
-    const currentDamage = estimateFoodRisk(entry.food, currentPotState);
-    const bestDamage = estimateFoodRisk(potItems[best].food, currentPotState);
+    const currentDamage = estimateFoodRisk(entry.food, estimatedPotState);
+    const bestDamage = estimateFoodRisk(potItems[best].food, estimatedPotState);
     return currentDamage < bestDamage ? index : best;
   }, 0);
   const [entry] = potItems.splice(bestIndex, 1);
+  reservedFoodsByPlayer.set(playerIndex, entry);
   addLog(`${player.name}は暗視ゴーグルで食材を選んだ`);
-  revealPendingFood(entry.food);
+  currentNightVisionUserIndex = null;
+  processNextNightVisionUser();
 }
 
 function estimateFoodRisk(food, potState) {

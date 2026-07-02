@@ -239,6 +239,40 @@ body.is-pregame #restartButton {
   padding: 4px 8px;
 }
 
+.status-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.effect {
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  padding: 3px 7px;
+}
+
+.effect.none {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--muted);
+}
+
+.effect.poison {
+  background: rgba(126, 224, 97, 0.18);
+  color: #9cff74;
+}
+
+.effect.confusion {
+  background: rgba(198, 128, 255, 0.2);
+  color: #ddb4ff;
+}
+
+.effect.guard {
+  background: rgba(92, 194, 255, 0.2);
+  color: #9ddeff;
+}
+
 .alive .status {
   background: rgba(85, 206, 126, 0.18);
   color: #8dffa7;
@@ -449,6 +483,23 @@ body.is-pregame #restartButton {
   margin-top: 10px;
 }
 
+.item-area {
+  border-top: 1px solid rgba(255, 248, 234, 0.12);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.item-heading h2 {
+  color: #d9f2ff;
+}
+
+.items {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(110px, 180px));
+  margin-top: 10px;
+}
+
 .food-card {
   background: linear-gradient(180deg, #fff3d0, #e9c77d);
   border: 2px solid #7d4f22;
@@ -502,6 +553,46 @@ body.is-pregame #restartButton {
 
 .food-role.medium {
   background: #8a5a18;
+}
+
+.food-role.status {
+  background: #6940a8;
+}
+
+.food-role.spice {
+  background: #b5281f;
+}
+
+.food-role.reset {
+  background: #2f8f78;
+}
+
+.food-role.item {
+  background: #2c2c2c;
+}
+
+.item-card {
+  background: linear-gradient(180deg, #d9f2ff, #82bdd8);
+  border-color: #245f78;
+  box-shadow: 0 4px 0 #245f78;
+}
+
+.item-card.string {
+  background: linear-gradient(180deg, #f7efe3, #c7a676);
+  border-color: #7a5631;
+  box-shadow: 0 4px 0 #7a5631;
+}
+
+.item-card.antidote {
+  background: linear-gradient(180deg, #ecffd9, #93d876);
+  border-color: #377a31;
+  box-shadow: 0 4px 0 #377a31;
+}
+
+.revealed-pot-card {
+  background: linear-gradient(180deg, #f5fbff, #b7d6e4);
+  border-color: #344c5b;
+  box-shadow: 0 4px 0 #344c5b;
 }
 
 .food-detail {
@@ -816,6 +907,10 @@ body.hit-impact .mahjong-table {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .items {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .food-card {
     min-height: 116px;
     padding: 8px 6px;
@@ -918,6 +1013,11 @@ body.hit-impact .mahjong-table {
 
   .hand {
     gap: 7px;
+  }
+
+  .items {
+    gap: 7px;
+    grid-template-columns: 1fr;
   }
 
   .food-card {
